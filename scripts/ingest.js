@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, '../../ai-chatbot-plataform/backend/.env') });
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Initialize clients
 const supabase = createClient(
@@ -46,18 +46,23 @@ async function generateEmbedding(text) {
 /**
  * Upsert chunk to Supabase
  */
-async function upsertChunk(chunk, embedding) {
+async function upsertChunk(chunk, embedding, chunkIndex) {
   try {
     const { data, error } = await supabase
-      .from('brain_chunks')
+      .from('knowledge_chunks')
       .upsert({
-        content: chunk.content,
+        brain_id: 'btrix-core',
         source: chunk.source,
-        section: chunk.section,
-        tags: chunk.tags,
-        version: chunk.version,
+        source_id: chunk.version,
+        title: chunk.section,
+        chunk_index: chunkIndex,
+        content: chunk.content,
         content_hash: chunk.content_hash,
-        token_count: chunk.token_count,
+        metadata: {
+          tags: chunk.tags,
+          token_count: chunk.token_count,
+          version: chunk.version,
+        },
         embedding: embedding,
       }, {
         onConflict: 'content_hash',
@@ -92,13 +97,14 @@ async function ingestChunks(chunks, batchSize = 10, delayMs = 1000) {
     
     console.log(`Processing batch ${batchNumber}/${totalBatches} (chunks ${i + 1}-${Math.min(i + batchSize, chunks.length)})...`);
     
-    const promises = batch.map(async (chunk) => {
+    const promises = batch.map(async (chunk, idx) => {
       try {
         // Generate embedding
         const embedding = await generateEmbedding(chunk.content);
         
         // Upsert to Supabase
-        await upsertChunk(chunk, embedding);
+        const globalIndex = i + idx;
+        await upsertChunk(chunk, embedding, globalIndex);
         
         return { success: true, chunk };
       } catch (error) {
@@ -141,9 +147,9 @@ async function deleteVersion(version) {
   console.log(`\nDeleting all chunks for version ${version}...`);
   
   const { data, error } = await supabase
-    .from('brain_chunks')
+    .from('knowledge_chunks')
     .delete()
-    .eq('version', version);
+    .eq('source_id', version);
   
   if (error) {
     console.error('Error deleting chunks:', error.message);
@@ -159,8 +165,8 @@ async function deleteVersion(version) {
  */
 async function getStats() {
   const { data, error } = await supabase
-    .from('brain_chunks')
-    .select('version, source, token_count');
+    .from('knowledge_chunks')
+    .select('source_id, source, metadata');
   
   if (error) {
     console.error('Error fetching stats:', error.message);
@@ -175,11 +181,14 @@ async function getStats() {
   };
   
   data.forEach(chunk => {
+    const version = chunk.source_id || 'unknown';
+    const tokenCount = chunk.metadata?.token_count || 0;
+    
     // By version
-    if (!stats.byVersion[chunk.version]) {
-      stats.byVersion[chunk.version] = 0;
+    if (!stats.byVersion[version]) {
+      stats.byVersion[version] = 0;
     }
-    stats.byVersion[chunk.version]++;
+    stats.byVersion[version]++;
     
     // By source
     if (!stats.bySource[chunk.source]) {
@@ -188,7 +197,7 @@ async function getStats() {
     stats.bySource[chunk.source]++;
     
     // Total tokens
-    stats.totalTokens += chunk.token_count;
+    stats.totalTokens += tokenCount;
   });
   
   return stats;
