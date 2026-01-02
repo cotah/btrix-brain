@@ -1,18 +1,20 @@
 # BTRIX AGENTS — AI Add-ons
 
-**Version:** 1.0.0  
+**Version:** 1.0.2  
 **Last Updated:** 2025-01-02  
-**Status:** Official Agent Specifications
+**Status:** Official Agent Specifications (Enhanced with synonyms)
 
 ---
 
 ## Overview
 
-BTRIX Agents are **specialized autonomous AI agents** that work 24/7 inside your BTRIX operating system.
+BTRIX Agents are **specialized autonomous AI agents** (also called **AI workers**, **modules**, **add-ons**, or **specialists**) that work 24/7 inside your BTRIX operating system.
 
 Each agent has a **defined scope**, **specific functions**, and **clear limitations**.
 
 **Important:** Agents are **add-ons** and require an **active BTRIX pack** (Essential, Pro, or Enterprise).
+
+**Common terms:** AI agents, AI workers, automation modules, AI specialists, intelligent assistants, autonomous workers.
 
 ---
 

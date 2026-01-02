@@ -1,14 +1,18 @@
 # BTRIX PACKS — Service Packages
 
-**Version:** 1.0.0  
+**Version:** 1.0.2  
 **Last Updated:** 2025-01-02  
-**Status:** Official Pricing & Specifications
+**Status:** Official Pricing & Specifications (Enhanced with variations)
 
 ---
 
 ## Overview
 
-BTRIX operates with **three main service packs**, each designed for different business sizes and automation needs.
+BTRIX operates with **three main service packs** (also called **plans**, **packages**, or **tiers**), each designed for different business sizes and automation needs.
+
+**Pricing structure:** All packs have a **setup fee** (one-time) + **monthly subscription** (recurring).
+
+**Common terms:** cost, price, monthly fee, setup cost, subscription, payment, investment, pricing, rates.
 
 All packs include:
 - Initial setup and configuration
