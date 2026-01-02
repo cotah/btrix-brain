@@ -1,0 +1,17 @@
+{
+  "name": "btrix-brain-scripts",
+  "version": "1.0.0",
+  "description": "BTRIX Brain ingestion and management scripts",
+  "type": "module",
+  "scripts": {
+    "chunk": "node chunker.js ../core",
+    "ingest": "node ingest.js ingest ../core 1.0.0",
+    "delete": "node ingest.js delete",
+    "stats": "node ingest.js stats"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "openai": "^4.20.0",
+    "dotenv": "^16.3.1"
+  }
+}
