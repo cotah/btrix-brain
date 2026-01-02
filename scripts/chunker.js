@@ -35,38 +35,74 @@ function generateHash(content) {
 function extractTags(content, source) {
   const tags = [];
   
-  // Source-based tags
-  if (source.includes('PACKS')) tags.push('packs', 'pricing');
-  if (source.includes('AGENTS')) tags.push('agents', 'add-ons');
-  if (source.includes('LIMITS')) tags.push('limits', 'boundaries');
-  if (source.includes('FAQ')) tags.push('faq', 'questions');
-  if (source.includes('CORE')) tags.push('core', 'overview');
+  // Source-based tags (primary classification)
+  if (source.includes('PACKS')) {
+    tags.push('packs', 'pricing');
+  }
+  if (source.includes('AGENTS')) {
+    tags.push('agents');
+  }
+  if (source.includes('LIMITS')) {
+    tags.push('limits');
+  }
+  if (source.includes('FAQ')) {
+    tags.push('support');
+  }
+  if (source.includes('CORE')) {
+    tags.push('core');
+  }
   
-  // Content-based tags
+  // Content-based tags (intent classification)
   const lowerContent = content.toLowerCase();
   
+  // Pack types
   if (lowerContent.includes('essential')) tags.push('essential');
   if (lowerContent.includes('pro')) tags.push('pro');
-  if (lowerContent.includes('enterprise') || lowerContent.includes('custom')) tags.push('enterprise');
+  if (lowerContent.includes('enterprise') || lowerContent.includes('custom')) {
+    tags.push('enterprise');
+  }
   
-  if (lowerContent.includes('sales agent')) tags.push('sales-agent');
-  if (lowerContent.includes('marketing agent')) tags.push('marketing-agent');
-  if (lowerContent.includes('finance agent')) tags.push('finance-agent');
-  if (lowerContent.includes('inventory agent')) tags.push('inventory-agent');
-  if (lowerContent.includes('social media agent')) tags.push('social-media-agent');
-  if (lowerContent.includes('design agent')) tags.push('design-agent');
-  if (lowerContent.includes('video agent')) tags.push('video-agent');
+  // Specific agents
+  if (lowerContent.includes('sales agent')) tags.push('agents');
+  if (lowerContent.includes('marketing agent')) tags.push('agents');
+  if (lowerContent.includes('finance agent')) tags.push('agents');
+  if (lowerContent.includes('inventory agent')) tags.push('agents');
+  if (lowerContent.includes('social media agent')) tags.push('agents');
+  if (lowerContent.includes('design agent')) tags.push('agents');
+  if (lowerContent.includes('video agent')) tags.push('agents');
+  if (lowerContent.includes('agent') && !tags.includes('agents')) {
+    tags.push('agents');
+  }
   
-  if (lowerContent.includes('price') || lowerContent.includes('cost') || lowerContent.includes('€')) {
+  // Pricing indicators
+  if (lowerContent.includes('price') || 
+      lowerContent.includes('cost') || 
+      lowerContent.includes('€') ||
+      lowerContent.includes('monthly') ||
+      lowerContent.includes('setup')) {
     tags.push('pricing');
   }
   
-  if (lowerContent.includes('support') || lowerContent.includes('24/7')) {
+  // Support indicators
+  if (lowerContent.includes('support') || 
+      lowerContent.includes('24/7') ||
+      lowerContent.includes('help')) {
     tags.push('support');
   }
   
-  if (lowerContent.includes('demo') || lowerContent.includes('schedule')) {
-    tags.push('demo');
+  // Limits indicators
+  if (lowerContent.includes('not') || 
+      lowerContent.includes('don\'t') ||
+      lowerContent.includes('cannot') ||
+      lowerContent.includes('limit')) {
+    tags.push('limits');
+  }
+  
+  // Roadmap indicators
+  if (lowerContent.includes('roadmap') || 
+      lowerContent.includes('future') ||
+      lowerContent.includes('coming')) {
+    tags.push('roadmap');
   }
   
   return [...new Set(tags)]; // Remove duplicates
@@ -216,8 +252,11 @@ export function chunkDocument(filePath, version = '1.0.0') {
  * Chunk all documents in a directory
  */
 export function chunkDirectory(dirPath, version = '1.0.0') {
-  const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.md'));
+  const files = fs.readdirSync(dirPath)
+    .filter(f => f.endsWith('.md') && f !== 'BOT_SYSTEM_PROMPT.md');
   const allChunks = [];
+  
+  console.log('ℹ️  Skipping BOT_SYSTEM_PROMPT.md (hardcoded in backend)\n');
   
   for (const file of files) {
     const filePath = path.join(dirPath, file);
