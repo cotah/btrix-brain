@@ -46,12 +46,12 @@ async function generateEmbedding(text) {
 /**
  * Upsert chunk to Supabase
  */
-async function upsertChunk(chunk, embedding, chunkIndex) {
+async function upsertChunk(chunk, embedding, chunkIndex, brainId = 'btrix-core') {
   try {
     const { data, error } = await supabase
       .from('knowledge_chunks')
       .upsert({
-        brain_id: 'btrix-core',
+        brain_id: brainId,
         source: chunk.source,
         source_id: chunk.version,
         title: chunk.section,
@@ -83,9 +83,12 @@ async function upsertChunk(chunk, embedding, chunkIndex) {
 /**
  * Ingest all chunks with rate limiting
  */
-async function ingestChunks(chunks, batchSize = 10, delayMs = 1000) {
+async function ingestChunks(chunks, batchSize = 10, delayMs = 1000, version = '1.0.0') {
   console.log(`\nIngesting ${chunks.length} chunks...`);
   console.log(`Batch size: ${batchSize}, Delay: ${delayMs}ms\n`);
+  
+  const brainId = `btrix-brain:${version}`;
+  console.log(`Brain ID: ${brainId}\n`);
   
   let successCount = 0;
   let errorCount = 0;
@@ -104,7 +107,7 @@ async function ingestChunks(chunks, batchSize = 10, delayMs = 1000) {
         
         // Upsert to Supabase
         const globalIndex = i + idx;
-        await upsertChunk(chunk, embedding, globalIndex);
+        await upsertChunk(chunk, embedding, globalIndex, brainId);
         
         return { success: true, chunk };
       } catch (error) {
@@ -244,7 +247,7 @@ async function main() {
     
     // Step 2: Ingest chunks
     console.log('\n--- Step 2: Generating embeddings and ingesting ---');
-    await ingestChunks(chunks);
+    await ingestChunks(chunks, 10, 1000, version);
     
     // Step 3: Show stats
     console.log('\n--- Step 3: Database statistics ---');
